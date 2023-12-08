@@ -6,6 +6,7 @@ with open('ids.json') as f:
     user_id = ids["user_id"]
     session_id = ids["session_id"]
 
+batch_no = 1
 max_id = ''
 users = {}
 
@@ -20,7 +21,10 @@ while True:
 
     try:
         max_id = data["next_max_id"]
+        print(f"[🦕] Got {batch_no} batch of users, getting the next...")
+        batch_no += 1
     except KeyError:
+        print(f"[🐍] Got all {len(users)} users!")
         break
 
     for i in data["users"]:
@@ -36,4 +40,4 @@ while True:
 with open('followers.json', 'w') as f:
     dump(data["users"], f)
 
-print(users)
+# print(users)
