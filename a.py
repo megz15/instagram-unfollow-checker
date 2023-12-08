@@ -9,9 +9,9 @@ with open('ids.json') as f:
 max_id = ''
 users = {}
 
-def followers(user_id, session_id, max_id = ''):
+def get_users(user_id, session_id, group = "following", count = 200, max_id = '', batch_no = 1):
     data = get(
-        "https://i.instagram.com/api/v1/friendships/{}/followers?max_id={}".format(user_id, max_id), headers= {
+        f"https://i.instagram.com/api/v1/friendships/{user_id}/{group}?count={count}&max_id={max_id}", headers= {
             'user-agent':'Instagram 420.0.0.0.69'
         }, cookies= {
             'ds_user_id': user_id,
@@ -20,10 +20,10 @@ def followers(user_id, session_id, max_id = ''):
 
     try:
         max_id = data["next_max_id"]
-        print("[🦕] Got one batch of users, getting the next...")
-        followers(user_id, session_id, max_id)
+        print(f"[🦕] Got {batch_no} batch of {group}, getting the next...")
+        get_users(user_id, session_id, group, count, max_id, batch_no + 1)
     except KeyError:
-        print("[🐍] Got all users!")
+        print("[🐍] Got all {} {}!".format((batch_no - 1) * count + len(data["users"]), group))
         return
 
     for i in data["users"]:
@@ -36,7 +36,14 @@ def followers(user_id, session_id, max_id = ''):
                 "is_private": i["is_private"]
             }
 
-followers(user_id, session_id)
+get_users(user_id, session_id, "following", 200)
+
+with open('following.json', 'w') as f:
+    dump(users, f)
+    users.clear()
+
+get_users(user_id, session_id, "followers", 24)
 
 with open('followers.json', 'w') as f:
     dump(users, f)
+    users.clear()
