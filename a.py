@@ -6,11 +6,10 @@ with open('ids.json') as f:
     user_id = ids["user_id"]
     session_id = ids["session_id"]
 
-batch_no = 1
 max_id = ''
 users = {}
 
-while True:
+def followers(user_id, session_id, max_id = ''):
     data = get(
         "https://i.instagram.com/api/v1/friendships/{}/followers?max_id={}".format(user_id, max_id), headers= {
             'user-agent':'Instagram 420.0.0.0.69'
@@ -21,11 +20,11 @@ while True:
 
     try:
         max_id = data["next_max_id"]
-        print(f"[🦕] Got {batch_no} batch of users, getting the next...")
-        batch_no += 1
+        print("[🦕] Got one batch of users, getting the next...")
+        followers(user_id, session_id, max_id)
     except KeyError:
-        print(f"[🐍] Got all {len(users)} users!")
-        break
+        print("[🐍] Got all users!")
+        return
 
     for i in data["users"]:
         if i["pk"] not in users:
@@ -37,7 +36,7 @@ while True:
                 "is_private": i["is_private"]
             }
 
-with open('followers.json', 'w') as f:
-    dump(data["users"], f)
+followers(user_id, session_id)
 
-# print(users)
+with open('followers.json', 'w') as f:
+    dump(users, f)
